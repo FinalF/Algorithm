@@ -1,30 +1,37 @@
-    public int kthSmallest(int[][] matrix, int k) {
-        // binary sort. O(nlogx) x:max-min
-        int m=matrix.length;
-        int n=matrix[0].length;
-        int row=matrix.length;
-        int col=matrix.length;
-        int min=matrix[0][0];
-        int max=matrix[m-1][n-1];
-        while(min<max){
-            int mid = min+(max-min)/2;
-            int count=searchLowerThanMid(matrix, mid, m,n);
-            if(count<k) min=mid+1;
-            else max=mid;
+  class Node {
+        int row;
+        int col;
+        int val;
+        public Node(int row, int col, int val) {
+            this.row = row;
+            this.col = col;
+            this.val = val;
         }
-        return min;
     }
-    
-    private int searchLowerThanMid(int[][] matrix, int mid, int m,int n){
-		int i=m-1;
-		int j=0;
-		int cnt=0;
-		while (i>=0 && j<n) {
-			if (matrix[i][j]<=mid) {
-				j++;
-				cnt += i+1; //add the whole column
-			}
-			else i--;
-		}
-		return cnt;
+    public int kthSmallest(int[][] matrix, int k) {
+        // priority queue
+        int m = matrix.length;
+        int n = matrix[0].length;
+        Queue<Node> pq = new PriorityQueue<Node>(k,new Comparator<Node>() {
+           public int compare(Node a, Node b) {
+               return a.val - b.val;
+           } 
+        });
+        Set<String> visited = new HashSet<String>();
+        pq.offer(new Node(0,0,matrix[0][0]));//add the 1st node;
+        for(int i = 0; i < k-1; i++){
+            Node cur = pq.poll();
+            int tmpi = cur.row;
+            int tmpj = cur.col;
+            //only look at the next two larger numbers
+            if(tmpi+1<m && !visited.contains(tmpi+1+":"+tmpj)){
+                pq.offer(new Node(tmpi+1,tmpj,matrix[tmpi+1][tmpj]));
+                visited.add(tmpi+1+":"+tmpj);
+            }
+            if(tmpj+1<n && !visited.contains(tmpi+":"+(tmpj+1))){
+                pq.offer(new Node(tmpi,tmpj+1,matrix[tmpi][tmpj+1]));
+                visited.add(tmpi+":"+(tmpj+1));
+            }
+        }
+        return pq.poll().val;
     }
